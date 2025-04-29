@@ -5,7 +5,7 @@ import 'package:smartbook/screens/register_screen.dart';
 // Screens for main functionality
 import 'package:smartbook/screens/home_screen.dart';
 import 'package:smartbook/screens/catalog_screen.dart';
-import 'package:smartbook/screens/book_detail_screen.dart';
+import 'package:smartbook/screens/book_info_screen.dart';
 // User specific screens
 import 'package:smartbook/screens/reading_list_screen.dart';
 import 'package:smartbook/screens/rate_and_review_screen.dart';
@@ -47,7 +47,7 @@ class SmartBookApp extends StatelessWidget {
         '/register': (_) => RegisterScreen(),
         '/home': (_) => HomeScreen(),
         '/catalog': (_) => CatalogScreen(),
-        '/book_detail': (_) => BookDetailScreen(),
+        '/book_info': (_) => BookInfoScreen(),
         '/reading_list': (_) => ReadingListScreen(),
         '/rate_and_review': (_) => RateAndReviewScreen(),
         '/forum': (_) => ForumScreen(),

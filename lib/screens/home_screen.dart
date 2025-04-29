@@ -152,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.pushNamed(context, '/catalog');
         break;
       case 2:
-        Navigator.pushNamed(context, '/book_detail');
+        Navigator.pushNamed(context, '/book_info');
         break;
       case 3:
         Navigator.pushNamed(context, '/reading_list');
@@ -239,3 +239,31 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _navigateToPage,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.library_books),
+            label: 'Catalog',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.text_fields),
+            label: 'Book Info',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.star),
+            label: 'Rate & Review',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.forum),
+            label: 'Forum',
+          ),
+        ],
+      ),
+    );
+  }
