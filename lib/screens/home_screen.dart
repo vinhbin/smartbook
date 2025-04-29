@@ -5,6 +5,10 @@ import 'package:smartbook/models/book.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // For storing user preferences
 
 class HomeScreen extends StatefulWidget {
+ final String? userName; // Receive user's name
+
+  const HomeScreen({Key? key, this.userName}) : super(key: key);
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -164,3 +168,74 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
     }
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (widget.userName != null)
+              Text(
+                'Welcome back, ${widget.userName!.split(' ').first}!',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            Text(
+              'Recommended Books',
+              style: TextStyle(fontSize: 20),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.pushNamed(context, '/profile'); // Navigate to profile page
+            },
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _refreshBooks,
+        child: FutureBuilder<List<Book>>(
+          future: _recommendedBooks,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                _startIndex == 0) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+              List<Book> books = snapshot.data!;
+              return ListView.builder(
+                controller: _scrollController,
+                itemCount: books.length + (_hasMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index < books.length) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/book_detail',
+                            arguments: books[index])
+                            .then((_) {
+                          _rateBook(books[index].id);
+                        });
+                      },
+                      child: BookCard(book: books[index]),
+                    );
+                  } else if (_hasMore) {
+                    return Center(child: CircularProgressIndicator());
+                  } else {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(child: Text('No more recommendations.')),
+                    );
+                  }
+                },
+              );
+            } else {
+              return Center(child: Text('No recommendations found.'));
+            }
+          },
+        ),
+      ),
