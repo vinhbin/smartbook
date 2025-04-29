@@ -119,3 +119,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
+  Future<void> _refreshBooks() async {
+    setState(() {
+      _startIndex = 0;
+      _hasMore = true;
+    });
+    _recommendedBooks = _fetchRecommendedBooks();
+  }
