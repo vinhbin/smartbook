@@ -94,3 +94,58 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+ // Functionality for forgot password
+  void _showForgotPasswordDialog(BuildContext context) {
+    final _resetEmailController = TextEditingController(); //local controller
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Reset Password'),
+          content: TextField(
+            controller: _resetEmailController,
+            decoration: InputDecoration(labelText: 'Enter your email'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await _auth.sendPasswordResetEmail(
+                      email: _resetEmailController.text.trim());
+                  Navigator.of(context).pop(); // Close the dialog
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Password reset email sent. Check your inbox.')), //message
+                  );
+                } on FirebaseAuthException catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('Error: ${e.message}')), //show error
+                  );
+                }
+              },
+              child: Text('Reset Password'),
+            ),
+          ],
+        );
+      },
+    );
+    _resetEmailController.dispose();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+}
