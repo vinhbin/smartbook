@@ -63,3 +63,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         email: _emailController.text.trim(),
                         password: _passwordController.text.trim(),
                       );
+                      // Sign in the user automatically after registration
+                      if (userCredential.user != null) {
+                        Navigator.pushReplacementNamed(context, '/home');
+                      }
+                    } on FirebaseAuthException catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to register: ${e.message}')),
+                      );
+                    }
+                  }
+                },
+                child: Text('Register'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+}
