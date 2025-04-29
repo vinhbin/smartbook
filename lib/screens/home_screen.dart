@@ -57,3 +57,65 @@ class _HomeScreenState extends State<HomeScreen> {
 
       List<Book> newBooks = await GoogleBooksAPI.searchBooks(
           query, startIndex: _startIndex, pageSize: _pageSize);
+
+      if (newBooks.isEmpty) {
+        setState(() {
+          _hasMore = false;
+          _isLoading = false;
+        });
+        return append ? [] : [];
+      }
+
+      setState(() {
+        _startIndex += _pageSize;
+        _isLoading = false;
+      });
+
+      return append ? [...await _recommendedBooks, ...newBooks] : newBooks;
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      throw Exception('Failed to fetch books: $e');
+    }
+  }
+
+  String _buildRecommendationQuery() {
+    List<String> keywords = [..._userGenres];
+    if (_recentRatings.isNotEmpty) {
+      keywords.add('similar to: ${_recentRatings.last}');
+    }
+    return keywords.join(' ');
+  }
+
+  void _scrollListener() {
+    if (_hasMore &&
+        !_isLoading &&
+        _scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      _loadMoreBooks();
+    }
+  }
+
+  Future<void> _loadMoreBooks() async {
+    if (_hasMore && !_isLoading) {
+      try {
+        List<Book> additionalBooks = await _fetchRecommendedBooks(append: true);
+        if (additionalBooks.isNotEmpty) {
+          setState(() {
+            _recommendedBooks = Future.value(additionalBooks);
+          });
+        } else {
+          setState(() {
+            _hasMore = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load more books: $e')),
+        );
+      }
+    }
+  }
