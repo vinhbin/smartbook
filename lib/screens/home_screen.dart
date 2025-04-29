@@ -26,3 +26,27 @@ class _HomeScreenState extends State<HomeScreen> {
     _recommendedBooks = _fetchRecommendedBooks();
     _scrollController.addListener(_scrollListener);
   }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadUserPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userGenres = prefs.getStringList('userGenres') ?? ['fiction']; // Default genre
+    });
+  }
+
+  Future<void> _saveUserPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('userGenres', _userGenres);
+  }
+
+  Future<List<Book>> _fetchRecommendedBooks({bool append = false}) async {
+    setState(() {
+      _isLoading = true;
+    });

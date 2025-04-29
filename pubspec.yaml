@@ -38,6 +38,7 @@ dependencies:
   # Optional:
   # openai_api: ^1.0.0 # For OpenAI API
   flutter_rating_bar: ^4.0.1 # For star ratings
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
