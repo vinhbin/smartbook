@@ -50,3 +50,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isLoading = true;
     });
+
+    try {
+      // Recommendation Logic
+      String query = _buildRecommendationQuery();
+
+      List<Book> newBooks = await GoogleBooksAPI.searchBooks(
+          query, startIndex: _startIndex, pageSize: _pageSize);
