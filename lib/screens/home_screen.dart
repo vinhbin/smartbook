@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasMore = true;
   List<String> _userGenres = []; // User's favorite genres
   final List<String> _recentRatings = []; // Store IDs of recently rated books
-
+  int _currentIndex = 0; // For bottom navigation
 @override
   void initState() {
     super.initState();
@@ -136,3 +136,31 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
   
+  void _navigateToPage(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    switch (index) {
+      case 0:
+        // Already on Home Screen
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/catalog');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/book_detail');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/reading_list');
+        break;
+      case 4:
+        Navigator.pushNamed(context,'/rate_and_review');
+        break;
+      case 5:
+        Navigator.pushNamed(context,'/forum');
+        break;
+      case 6:
+        Navigator.pushNamed(context,'/profile');
+        break;
+    }
+  }
