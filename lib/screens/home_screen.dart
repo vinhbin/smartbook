@@ -18,3 +18,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasMore = true;
   List<String> _userGenres = []; // User's favorite genres
   List<String> _recentRatings = []; // Store IDs of recently rated books
+
+@override
+  void initState() {
+    super.initState();
+    _loadUserPreferences(); // Load genres on init
+    _recommendedBooks = _fetchRecommendedBooks();
+    _scrollController.addListener(_scrollListener);
+  }
