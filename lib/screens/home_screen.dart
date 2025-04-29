@@ -267,3 +267,61 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+  Future<void> _showGenreSelectionDialog() async {
+    final List<String> availableGenres = ['fiction', 'mystery', 'science fiction', 'fantasy', 'romance'];
+    List<String>? selectedGenres = await showDialog<List<String>>(
+      context: context,
+      builder: (BuildContext context) {
+        List<String> tempGenres = List<String>.from(_userGenres);
+        return AlertDialog(
+          title: Text('Select Genres'),
+          content: SingleChildScrollView(
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Column(
+                  children: availableGenres.map((genre) {
+                    return CheckboxListTile(
+                      title: Text(genre),
+                      value: tempGenres.contains(genre),
+                      onChanged: (bool? value) {
+                        if (value == true) {
+                          setState(() {
+                            tempGenres.add(genre);
+                          });
+                        } else {
+                          setState(() {
+                            tempGenres.remove(genre);
+                          });
+                        }
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(tempGenres);
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedGenres != null) {
+      setState(() {
+        _userGenres = selectedGenres;
+      });
+      _saveUserPreferences();
+      _refreshBooks();
+      }
+  }
+}
