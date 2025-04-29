@@ -29,3 +29,68 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 100,
               ),
               SizedBox(height: 20), // Add spacing between logo and form
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Invalid email format'; // TC-BW-02
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      UserCredential userCredential =
+                          await _auth.signInWithEmailAndPassword(
+                        email: _emailController.text,
+                        password: _passwordController.text,
+                      );
+                      Navigator.pushReplacementNamed(
+                          context, '/home'); // TC-BW-01
+                    } on FirebaseAuthException catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Failed to login: ${e.message}')),
+                      );
+                    }
+                  }
+                },
+                child: Text('Log In'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+                child: Text('Register'),
+              ),
+              TextButton(
+                // Added Forgot Password
+                onPressed: () {
+                  _showForgotPasswordDialog(context);
+                },
+                child: Text('Forgot Password?'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
