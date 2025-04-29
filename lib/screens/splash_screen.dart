@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: <Widget>[
               // Logo goes here
               Image.asset(
-                'assets/images/logo/smartbook_logo.svg',
+                'assets/images/logo/smartbook_logo.JPG',
                 width: 100.0,  // might need to adjust this
                 height: 100.0,
                 // errorBuilder: (context, error, stackTrace) {
