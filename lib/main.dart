@@ -4,12 +4,12 @@ import 'package:smartbook/screens/login_screen.dart';
 import 'package:smartbook/screens/register_screen.dart';
 // Screens for main functionality
 import 'package:smartbook/screens/home_screen.dart';
-import 'package:smartbook/screens/search_screen.dart';
+import 'package:smartbook/screens/catalog_screen.dart';
 import 'package:smartbook/screens/book_detail_screen.dart';
 // User specific screens
 import 'package:smartbook/screens/reading_list_screen.dart';
-import 'package:smartbook/screens/review_screen.dart';
-import 'package:smartbook/screens/discussion_screen.dart';
+import 'package:smartbook/screens/rate_and_review_screen.dart';
+import 'package:smartbook/screens/forum_screen.dart';
 import 'package:smartbook/screens/profile_screen.dart';
 import 'package:firebase_core/firebase_core.dart';  // needed for Firebase stuff
 
@@ -46,11 +46,11 @@ class SmartBookApp extends StatelessWidget {
         '/login': (_) => LoginScreen(),
         '/register': (_) => RegisterScreen(),
         '/home': (_) => HomeScreen(),
-        '/search': (_) => SearchScreen(),
+        '/catalog': (_) => CatalogScreen(),
         '/book_detail': (_) => BookDetailScreen(),
         '/reading_list': (_) => ReadingListScreen(),
-        '/review': (_) => ReviewScreen(),
-        '/discussion': (_) => DiscussionScreen(),
+        '/rate_and_review': (_) => RateAndReviewScreen(),
+        '/forum': (_) => ForumScreen(),
         '/profile': (_) => ProfileScreen(),
         // '/settings': (_) => SettingsScreen(),  // will add this later if need be
       },
