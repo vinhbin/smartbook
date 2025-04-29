@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   bool _hasMore = true;
   List<String> _userGenres = []; // User's favorite genres
-  List<String> _recentRatings = []; // Store IDs of recently rated books
+  final List<String> _recentRatings = []; // Store IDs of recently rated books
 
 @override
   void initState() {
@@ -126,3 +126,13 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     _recommendedBooks = _fetchRecommendedBooks();
   }
+  void _rateBook(String bookId) {
+    setState(() {
+      _recentRatings.add(bookId);
+      if (_recentRatings.length > 5) {
+        _recentRatings.removeAt(0);
+      }
+      _recommendedBooks = _fetchRecommendedBooks();
+    });
+  }
+  
