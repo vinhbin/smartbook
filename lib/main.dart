@@ -41,7 +41,7 @@ class SmartBookApp extends StatelessWidget {
       home: SplashScreen(),  // Starting with splash screen for now
       
       // All the app routes - keeping them organized here
-      // Maybe should move these to a separate router file?
+      
       routes: {
         '/login': (_) => LoginScreen(),
         '/register': (_) => RegisterScreen(),
