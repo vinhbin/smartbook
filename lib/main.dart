@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/book_provider.dart';
+import 'services/google_books_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
@@ -42,10 +43,10 @@ class SmartBookApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (_) => const SplashScreen(),
-        '/login': (_) => const LoginScreen(),
-        '/register': (_) => const RegisterScreen(),
-        '/home': (_) => const HomeScreen(),
+        '/': (_) => SplashScreen(),
+        '/login': (_) => LoginScreen(),
+        '/register': (_) => RegisterScreen(),
+        '/home': (_) => HomeScreen(),
         /* '/catalog': (_) => const CatalogScreen(),
         '/book_info': (_) => const BookInfoScreen(),
         '/reading_list': (_) => const ReadingListScreen(),
