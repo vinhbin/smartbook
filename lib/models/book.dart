@@ -16,6 +16,14 @@ class Book {
     required this.rating,
     required this.description,
   });
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'title': title,
+    'authors': authors,
+    'thumbnail': thumbnail,
+    'rating': rating,
+    'description': description,
+  };
 
   /// Factory constructor that converts one Google-Books JSON item
   /// into our plain-Dart Book object.
@@ -25,7 +33,8 @@ class Book {
       id: item['id'],
       title: v['title'] ?? 'Unknown',
       authors: (v['authors'] ?? ['Unknown']).join(', '),
-      thumbnail: (v['imageLinks']?['thumbnail']) ??
+      thumbnail:
+          (v['imageLinks']?['thumbnail']) ??
           'https://via.placeholder.com/128x198.png?text=No+Cover',
       rating: (v['averageRating'] ?? 0).toDouble(),
       description: v['description'] ?? '',

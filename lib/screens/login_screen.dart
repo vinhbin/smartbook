@@ -5,6 +5,7 @@ class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
+
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -58,17 +59,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     try {
-                      UserCredential userCredential =
-                          await _auth.signInWithEmailAndPassword(
-                        email: _emailController.text,
-                        password: _passwordController.text,
-                      );
+                      UserCredential userCredential = await _auth
+                          .signInWithEmailAndPassword(
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                          );
                       Navigator.pushReplacementNamed(
-                          context, '/home'); // TC-BW-01
+                        context,
+                        '/home',
+                      ); // TC-BW-01
                     } on FirebaseAuthException catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text('Failed to login: ${e.message}')),
+                          content: Text('Failed to login: ${e.message}'),
+                        ),
                       );
                     }
                   }
@@ -94,7 +98,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
- // Functionality for forgot password
+
+  // Functionality for forgot password
   void _showForgotPasswordDialog(BuildContext context) {
     final _resetEmailController = TextEditingController(); //local controller
 
@@ -118,18 +123,20 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () async {
                 try {
                   await _auth.sendPasswordResetEmail(
-                      email: _resetEmailController.text.trim());
+                    email: _resetEmailController.text.trim(),
+                  );
                   Navigator.of(context).pop(); // Close the dialog
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text(
-                            'Password reset email sent. Check your inbox.')), //message
+                      content: Text(
+                        'Password reset email sent. Check your inbox.',
+                      ),
+                    ), //message
                   );
                 } on FirebaseAuthException catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('Error: ${e.message}')), //show error
+                    SnackBar(content: Text('Error: ${e.message}')), //show error
                   );
                 }
               },

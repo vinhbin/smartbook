@@ -12,7 +12,7 @@ class AuthProvider with ChangeNotifier {
   AuthState _state = AuthState.loading;
   AuthState get state => _state;
 
-  User? get user => _auth.currentUser;        // convenience getter
+  User? get user => _auth.currentUser; // convenience getter
 
   /// Start listening to Firebase’s authStateChanges stream as soon
   /// as the provider is created.  This fires on app launch and after
@@ -21,9 +21,8 @@ class AuthProvider with ChangeNotifier {
     _auth.authStateChanges().listen(_onChange);
   }
 
-  
   //  Public API used by our Login & Register screens
-  
+
   Future<void> signIn(String email, String pwd) =>
       _auth.signInWithEmailAndPassword(email: email, password: pwd);
 
@@ -32,14 +31,14 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> signOut() => _auth.signOut();
 
-
   //  Private helpers
-  
+
   void _onChange(User? _) {
     // Translate Firebase’s nullable User into our simple enum.
-    _state = (_auth.currentUser == null)
-        ? AuthState.unauthenticated
-        : AuthState.authenticated;
-    notifyListeners();                         // wake any Consumer widgets
+    _state =
+        (_auth.currentUser == null)
+            ? AuthState.unauthenticated
+            : AuthState.authenticated;
+    notifyListeners(); // wake any Consumer widgets
   }
 }
