@@ -1,59 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:smartbook/screens/splash_screen.dart';
-import 'package:smartbook/screens/login_screen.dart';
-import 'package:smartbook/screens/register_screen.dart';
-// Screens for main functionality
-import 'package:smartbook/screens/home_screen.dart';
-import 'package:smartbook/screens/catalog_screen.dart';
-import 'package:smartbook/screens/book_info_screen.dart';
-// User specific screens
-import 'package:smartbook/screens/reading_list_screen.dart';
-import 'package:smartbook/screens/rate_and_review_screen.dart';
-import 'package:smartbook/screens/forum_screen.dart';
-import 'package:smartbook/screens/profile_screen.dart';
-import 'package:firebase_core/firebase_core.dart';  // needed for Firebase stuff
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 
-// Had to make this async because Firebase setup needs it
+import 'providers/auth_provider.dart';
+import 'providers/book_provider.dart';
+
+import 'screens/splash_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/catalog_screen.dart';
+import 'screens/book_info_screen.dart';
+import 'screens/reading_list_screen.dart';
+import 'screens/rate_and_review_screen.dart';
+import 'screens/forum_screen.dart';
+import 'screens/profile_screen.dart';
+
+/// Entry point – make sure Firebase is ready before runApp().
 void main() async {
-  // This fixed that weird platform channel error I kept getting
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase - might need to add error handling here later
-  await Firebase.initializeApp();
-  
-  runApp(SmartBookApp());
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const SmartBookApp());
 }
 
+/// Root widget providing global state (Auth + Books) to the subtree.
 class SmartBookApp extends StatelessWidget {
-  // Using that nice mint green color I found online
-  final mainColor = const Color(0xFFB6E4CA);
-  
+  const SmartBookApp({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context) => MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ChangeNotifierProvider(create: (_) => BookProvider()),
+    ],
+    child: MaterialApp(
       title: 'SmartBook',
       theme: ThemeData(
-        primaryColor: mainColor,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        scaffoldBackgroundColor: mainColor,
-        // Might add more theme customization here later
+        colorSchemeSeed: const Color(0xFFB6E4CA), // mint palette
+        useMaterial3: true,
       ),
-      home: SplashScreen(),  // Starting with splash screen for now
-      
-      // All the app routes - keeping them organized here
-      
+      initialRoute: '/',
       routes: {
-        '/login': (_) => LoginScreen(),
-        '/register': (_) => RegisterScreen(),
-        '/home': (_) => HomeScreen(),
-        '/catalog': (_) => CatalogScreen(),
-        '/book_info': (_) => BookInfoScreen(),
-        '/reading_list': (_) => ReadingListScreen(),
-        '/rate_and_review': (_) => RateAndReviewScreen(),
-        '/forum': (_) => ForumScreen(),
-        '/profile': (_) => ProfileScreen(),
-        // '/settings': (_) => SettingsScreen(),  // will add this later if need be
+        '/': (_) => const SplashScreen(),
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
+        '/home': (_) => const HomeScreen(),
+        '/catalog': (_) => const CatalogScreen(),
+        '/book_info': (_) => const BookInfoScreen(),
+        '/reading_list': (_) => const ReadingListScreen(),
+        '/rate_and_review': (_) => const RateAndReviewScreen(),
+        '/forum': (_) => const ForumScreen(),
+        '/profile': (_) => const ProfileScreen(),
       },
-    );
-  }
+    ),
+  );
 }

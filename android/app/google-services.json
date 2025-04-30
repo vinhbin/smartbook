@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "782175923688",
+    "project_id": "smartbo-bfaa0",
+    "storage_bucket": "smartbo-bfaa0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782175923688:android:ac907b099e9d5e2c4c485d",
+        "android_client_info": {
+          "package_name": "com.example.smartbook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBv9WSOT7fwWxjKNRSr8-04MMWJn5fHBSo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

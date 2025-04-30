@@ -32,13 +32,15 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   http: ^0.13.0  # For HTTP requests (Google Books API)
-  firebase_core: ^2.4.1 # Firebase Core
-  firebase_auth: ^4.2.3 # Firebase Auth
-  cloud_firestore: ^4.3.1 # Firestore
+  provider: ^6.1.2
   # Optional:
   # openai_api: ^1.0.0 # For OpenAI API
   flutter_rating_bar: ^4.0.1 # For star ratings
   shared_preferences: ^2.2.2
+  cached_network_image: ^3.3.1
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.3
+  cloud_firestore: ^5.6.7
 
 dev_dependencies:
   flutter_test:
