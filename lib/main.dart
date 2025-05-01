@@ -11,7 +11,8 @@ import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
-/* import 'screens/catalog_screen.dart';
+import 'screens/catalog_screen.dart';
+/* 
 import 'screens/book_info_screen.dart';
 import 'screens/reading_list_screen.dart';
 import 'screens/rate_and_review_screen.dart';
@@ -47,7 +48,8 @@ class SmartBookApp extends StatelessWidget {
         '/login': (_) => LoginScreen(),
         '/register': (_) => RegisterScreen(),
         '/home': (_) => HomeScreen(),
-        /* '/catalog': (_) => const CatalogScreen(),
+        '/catalog': (_) => CatalogScreen(),
+        /* 
         '/book_info': (_) => const BookInfoScreen(),
         '/reading_list': (_) => const ReadingListScreen(),
         '/rate_and_review': (_) => const RateAndReviewScreen(),
