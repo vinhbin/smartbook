@@ -1,5 +1,6 @@
 /// Minimal data we need from Google Books.
 /// (We cache this in Firestore later.)
+// Updated Book model to include category
 class Book {
   final String id;
   final String title;
@@ -7,6 +8,7 @@ class Book {
   final String thumbnail;
   final String description;
   final double rating;
+  final String? category; // Added category
 
   Book({
     required this.id,
@@ -15,7 +17,9 @@ class Book {
     required this.thumbnail,
     required this.rating,
     required this.description,
+    this.category, // Added category to the constructor
   });
+
   Map<String, dynamic> toMap() => {
     'id': id,
     'title': title,
@@ -23,10 +27,9 @@ class Book {
     'thumbnail': thumbnail,
     'rating': rating,
     'description': description,
+    'category': category, // Added category to the map
   };
 
-  /// Factory constructor that converts one Google-Books JSON item
-  /// into our plain-Dart Book object.
   factory Book.fromGoogle(Map<String, dynamic> item) {
     final v = item['volumeInfo'] ?? {};
     return Book(
@@ -38,6 +41,9 @@ class Book {
           'https://via.placeholder.com/128x198.png?text=No+Cover',
       rating: (v['averageRating'] ?? 0).toDouble(),
       description: v['description'] ?? '',
+      category: v['categories'] != null && (v['categories'] as List).isNotEmpty
+          ? v['categories'][0]
+          : null, // Extract category, handle null/empty lists
     );
   }
 }

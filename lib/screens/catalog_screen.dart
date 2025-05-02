@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smartbook/services/google_books_service.dart';
+import 'package:smartbook/services/google_books_service.dart'; // Corrected import path
 import 'package:smartbook/models/book.dart';
 import 'package:smartbook/widgets/book_card.dart';
 
@@ -23,7 +23,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       _searchResults = [];
     });
     try {
-      final results = await GoogleBooksService.searchBooks(query);
+      final results = await GoogleBooksService.search(query);
       // Apply filter
       List<Book> filteredResults = results;
       if (_filter != 'All') {

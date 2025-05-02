@@ -12,7 +12,7 @@ class GoogleBooksService {
   /// Fetches [pageSize] books that match [query], starting at [startIndex].
   /// Returns an empty list on any non-200 status so the caller can
   /// decide what to show (spinner, snackbar, etc.).
-  Future<List<Book>> search(
+  static Future<List<Book>> search(
     String query, {
     int startIndex = 0,
     int pageSize = 10,
@@ -23,7 +23,9 @@ class GoogleBooksService {
     );
 
     final res = await http.get(uri);
-    if (res.statusCode != 200) return [];
+    if (res.statusCode != 200) {
+      throw Exception('Failed to load books: ${res.statusCode}');
+    }
 
     final data = jsonDecode(res.body);
     final items = (data['items'] as List?) ?? [];

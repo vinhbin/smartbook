@@ -9,7 +9,6 @@ import '../models/book.dart';
 ///   • remembering user’s favourite genres in SharedPreferences
 ///   • injecting a “similar to:last-rated” keyword
 class BookProvider extends ChangeNotifier {
-  final _api = GoogleBooksService();
 
   // In-memory list shown by HomeScreen.
   final List<Book> _books = [];
@@ -71,7 +70,7 @@ class BookProvider extends ChangeNotifier {
       if (_recent.isNotEmpty) 'similar to:${_recent.last}',
     ].join(' ');
 
-    final newPage = await _api.search(q, startIndex: _start, pageSize: _page);
+    final newPage = await GoogleBooksService.search(q, startIndex: _start, pageSize: _page);
 
     _books.addAll(newPage);
     _start += _page;
