@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     try {
-                      UserCredential userCredential = await _auth
+                      UserCredential _ = await _auth
                           .signInWithEmailAndPassword(
                             email: _emailController.text,
                             password: _passwordController.text,
