@@ -104,3 +104,19 @@ class BookInfoScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildBookTitleAndAuthor(String title, String author) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          'by $author',
+          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
