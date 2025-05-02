@@ -120,3 +120,87 @@ class BookInfoScreen extends StatelessWidget {
       ],
     );
   }
+
+  Widget _buildActionButtons(BuildContext context, Book book) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            _showAddToReadingListDialog(context, book);
+          },
+          icon: const Icon(Icons.add),
+          label: const Text('Add to List'),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.pushNamed(context, '/review', arguments: book);
+          },
+          icon: const Icon(Icons.rate_review),
+          label: const Text('Write Review'),
+        ),
+      ],
+    );
+  }
+
+  void _showAddToReadingListDialog(BuildContext context, Book book) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add to Reading List'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('Want to Read'),
+                onTap: () {
+                  // Implement adding to "Want to Read" logic
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('${book.title} added to Want to Read')),
+                  );
+                  // Consider notifying a state management provider here
+                },
+              ),
+              ListTile(
+                title: const Text('Currently Reading'),
+                onTap: () {
+                  // Implement adding to "Currently Reading" logic
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                            Text('${book.title} added to Currently Reading')),
+                  );
+                  // Consider notifying a state management provider here
+                },
+              ),
+              ListTile(
+                title: const Text('Finished Reading'),
+                onTap: () {
+                  // Implement adding to "Finished Reading" logic
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                            Text('${book.title} added to Finished Reading')),
+                  );
+                  // Consider notifying a state management provider here
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
