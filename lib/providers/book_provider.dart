@@ -1,81 +1,92 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/google_books_service.dart';
+
 import '../models/book.dart';
+import '../services/google_books_service.dart';
 
-/// Handles:
-///   • loading / refreshing recommendation list
-///   • lazy-loading more books on scroll
-///   • remembering user’s favourite genres in SharedPreferences
-///   • injecting a “similar to:last-rated” keyword
+/// Centralised state for the home screen: handles recommendation queries,
+/// paging, simple user preferences, and the "recently rated" similarity hint.
 class BookProvider extends ChangeNotifier {
-  final _api = GoogleBooksService();
+  // ────────────────────── public read‑only getters ──────────────────────
+  List<Book> get books   => List.unmodifiable(_books);
+  bool       get loading => _loading;
+  bool       get hasMore => _hasMore;
 
-  // In-memory list shown by HomeScreen.
-  final List<Book> _books = [];
-  List<Book> get books => _books;
+  // ─────────────────────────── private state ────────────────────────────
+  final _api   = GoogleBooksService();
+  final _books = <Book>[];
 
-  // Pagination flags.
-  bool _loading = true, _hasMore = true;
-  bool get loading => _loading;
-  bool get hasMore => _hasMore;
+  bool _loading = false; // ← MUST start false so first fetch can run
+  bool _hasMore = true;
 
-  // Cursor and page size.
-  int _start = 0, _page = 10;
+  int _start    = 0;     // cursor for paging
+  final int _page = 10;  // page size
 
-  // Simple “preferences”: favourite genres + recently rated book IDs.
-  List<String> _genres = ['fiction'];
-  final List<String> _recent = [];
+  List<String> _genres = ['fiction']; // simple user preference
+  final _recent = <String>[];         // last five rated IDs
 
+  // ───────────────────────────── lifecycle ──────────────────────────────
   BookProvider() {
     _bootstrap();
   }
 
-  /*──────────────── bootstrap ────────────────*/
   Future<void> _bootstrap() async {
-    // Load saved genres (if any) before the first API call.
-    final prefs = await SharedPreferences.getInstance();
-    _genres = prefs.getStringList('userGenres') ?? ['fiction'];
-
-    await refresh(); // initial API hit
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _genres = prefs.getStringList('userGenres') ?? ['fiction'];
+    } catch (_) {
+      // ignore – preferences are optional
+    }
+    await refresh();
   }
 
-  /*──────────────── external API ─────────────*/
+  // ─────────────────────────── public API ───────────────────────────────
   Future<void> refresh() async {
-    _start = 0;
+    _start   = 0;
     _books.clear();
     _hasMore = true;
-    await _load(); // first page
+    _loading = false; // ensure gate is open
+    await _load();
   }
 
-  Future<void> loadMore() => _load(); // called by the scroll listener
+  Future<void> loadMore() => _load();
 
-  /// Add a book to the “recent ratings” list (max 5) and trigger a refresh
-  /// so the query includes  “similar to:<that-id>”.
   void addRating(String id) {
     _recent..add(id);
     if (_recent.length > 5) _recent.removeAt(0);
     refresh();
   }
 
-  /*──────────────── private ───────────────────*/
+  // ──────────────────────────── internals ───────────────────────────────
   Future<void> _load() async {
-    if (!_hasMore || _loading) return;
+    if (_loading || !_hasMore) return;
 
     _loading = true;
-    notifyListeners(); // show spinner
+    notifyListeners();
 
-    // Build query: “fantasy mystery similar to:abc123”
-    final q = [
+    // Build query – if you're running offline with a stub, you can comment
+    // out the logic below and just send an empty string.
+    final query = [
       ..._genres,
       if (_recent.isNotEmpty) 'similar to:${_recent.last}',
     ].join(' ');
 
-    final newPage = await _api.search(q, startIndex: _start, pageSize: _page);
+    try {
+      final page = await _api.search(
+        query,
+        startIndex: _start,
+        pageSize: _page,
+      );
 
-    _books.addAll(newPage);
-    _start += _page;
-    _hasMore = newPage.isNotEmpty;
+      _books.addAll(page);
+      _hasMore = page.isNotEmpty;
+      _start   += _page;
+    } catch (e) {
+      // network or parsing error – stop paging and surface nothing more.
+      debugPrint('[BookProvider] fetch error: $e');
+      _hasMore = false;
+    }
+
     _loading = false;
     notifyListeners();
   }

@@ -4,6 +4,7 @@ import '../models/book.dart';
 /// Centralised Firestore access so widgets don’t repeat path strings.
 class FirestoreService {
   final _db = FirebaseFirestore.instance;
+  FirebaseFirestore get db => _db;
 
   /* USER READING-LIST */
 

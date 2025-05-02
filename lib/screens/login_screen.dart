@@ -64,10 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             email: _emailController.text,
                             password: _passwordController.text,
                           );
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/home',
-                      ); // TC-BW-01
+                      Navigator.pushReplacementNamed(context, '/home',); // TC-BW-01
                     } on FirebaseAuthException catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

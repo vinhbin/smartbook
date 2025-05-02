@@ -1,32 +1,74 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+
 import '../models/book.dart';
 
-/// Tiny wrapper around the public Google Books REST API.
-/// We only need two endpoints:
-///   • /volumes?q=…          (search)
-///   • same with startIndex  (lazy-load pagination)
+/// ---------------------------------------------------------------------
+/// GoogleBooksService – real API for mobile/desktop, proxy for web.
+/// ---------------------------------------------------------------------
+/// • Mobile / desktop → direct HTTPS call to Google Books.
+/// • Flutter Web      → request goes through `https://corsproxy.io/?` to
+///   inject permissive CORS headers.
+/// • Always times out after 8 s and returns **[]** on any non‑200 so the UI
+///   can decide what to show.
+/// • Gracefully handles missing JSON fields (title, authors, etc.).
 class GoogleBooksService {
-  static const _base = 'https://www.googleapis.com/books/v1/volumes';
+  static const _base      = 'https://www.googleapis.com/books/v1/volumes';
+  static const _proxyPre  = 'https://corsproxy.io/?'; // only used on web
 
-  /// Fetches [pageSize] books that match [query], starting at [startIndex].
-  /// Returns an empty list on any non-200 status so the caller can
-  /// decide what to show (spinner, snackbar, etc.).
+  /// Fetches a page of books that match [query].
+  ///
+  /// Returns **empty list** on HTTP or parsing failure; throws only on
+  /// network‑layer errors like time‑out or no connection.
   Future<List<Book>> search(
     String query, {
     int startIndex = 0,
-    int pageSize = 10,
+    int pageSize   = 10,
   }) async {
+    final encodedQ = Uri.encodeQueryComponent(query.trim());
     final uri = Uri.parse(
-      '$_base?q=${Uri.encodeQueryComponent(query)}'
-      '&startIndex=$startIndex&maxResults=$pageSize',
+      '${kIsWeb ? _proxyPre : ''}$_base?q=$encodedQ&startIndex=$startIndex&maxResults=$pageSize',
     );
 
-    final res = await http.get(uri);
-    if (res.statusCode != 200) return [];
+    http.Response res;
+    try {
+      res = await http.get(uri).timeout(const Duration(seconds: 8));
+    } catch (e) {
+      debugPrint('[GoogleBooks] network error → $e');
+      rethrow; // let caller decide (usually BookProvider)
+    }
 
-    final data = jsonDecode(res.body);
-    final items = (data['items'] as List?) ?? [];
-    return items.map((e) => Book.fromGoogle(e)).toList();
+    if (res.statusCode != 200) {
+      debugPrint('[GoogleBooks] HTTP ${res.statusCode}: ${res.body}');
+      return [];
+    }
+
+    try {
+      final data  = jsonDecode(res.body) as Map<String, dynamic>;
+      final items = (data['items'] as List?) ?? [];
+      return items
+    .cast<Map<String, dynamic>>()       // <‑‑ this makes the types line up
+    .map<Book>(_fromGoogle)
+    .toList();
+    } catch (e) {
+      debugPrint('[GoogleBooks] parse error → $e');
+      return [];
+    }
+  }
+
+  // Convert Google Books JSON → our Book object with safe fallbacks.
+  Book _fromGoogle(Map<String, dynamic> item) {
+    final v = item['volumeInfo'] ?? <String, dynamic>{};
+    return Book(
+      id:          item['id'] ?? 'missing_id',
+      title:       v['title'] ?? 'Unknown',
+      authors:     (v['authors'] ?? ['Unknown']).join(', '),
+      thumbnail:   (v['imageLinks']?['thumbnail']) ??
+                   'https://via.placeholder.com/128x198.png?text=No+Cover',
+      rating:      (v['averageRating'] ?? 0).toDouble(),
+      description: v['description'] ?? '',
+    );
   }
 }
+

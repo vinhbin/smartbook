@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/book_provider.dart'; // state for recs + paging
-import '../widgets/book_card.dart'; // simple UI card
-import '../models/book.dart'; // Book model
+import '/providers/book_provider.dart';
+import '/widgets/book_card.dart';
+import '/models/book.dart';
 
+/// Home screen showing the user a scrollable, paginated list of book
+/// recommendations.  All data and paging state come from [BookProvider].
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,10 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // Kick off the first page of recommendations.
-    context.read<BookProvider>().refresh();
-
-    // Lazy-load next page when the user nears the bottom (250 px threshold).
+    // Lazy‑load next page when the user nears the bottom (250 px threshold).
     _scrollCtrl.addListener(() {
       if (_scrollCtrl.position.pixels >=
           _scrollCtrl.position.maxScrollExtent - 250) {
@@ -39,43 +38,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final prov = context.watch<BookProvider>();
-    final books = prov.books; // current in-memory list
-    final hasMore = prov.hasMore; // whether another page is available
+    return Consumer<BookProvider>(
+      builder: (_, prov, __) {
+        final books = prov.books;
+        final hasMore = prov.hasMore;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Recommended Books')),
-      body: RefreshIndicator(
-        onRefresh: () => context.read<BookProvider>().refresh(),
-        child: ListView.builder(
-          controller: _scrollCtrl,
-          itemCount: books.length + (hasMore ? 1 : 0), // extra slot for spinner
-          itemBuilder: (_, i) {
-            // REAL book rows
-            if (i < books.length) {
-              final Book b = books[i];
-              return GestureDetector(
-                onTap: () async {
-                  // open detail page; when user returns, mark it as “rated”
-                  await Navigator.pushNamed(
-                    context,
-                    '/book_info',
-                    arguments: b,
+        return Scaffold(
+          appBar: AppBar(title: const Text('Recommended Books')),
+          body: RefreshIndicator(
+            onRefresh: prov.refresh,
+            child: ListView.builder(
+              controller: _scrollCtrl,
+              itemCount: books.length + (hasMore ? 1 : 0), // extra slot for spinner
+              itemBuilder: (_, i) {
+                // Real book rows
+                if (i < books.length) {
+                  final Book b = books[i];
+                  return GestureDetector(
+                    onTap: () async {
+                      // Open detail page; when user returns, mark it as "rated" so
+                      // the next recommendation query can include a similarity hint.
+                      await Navigator.pushNamed(
+                        context,
+                        '/book_info',
+                        arguments: b,
+                      );
+                      if (mounted) prov.addRating(b.id);
+                    },
+                    child: BookCard(book: b),
                   );
-                  if (mounted) context.read<BookProvider>().addRating(b.id);
-                },
-                child: BookCard(book: b),
-              );
-            }
+                }
 
-            // trailing loading indicator while fetching next page
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          },
-        ),
-      ),
+                // Trailing loading indicator while fetching next page
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
