@@ -81,3 +81,52 @@ class _CatalogScreenState extends State<CatalogScreen> {
               },
             ),
           ),
+          // Filter Dropdown
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: DropdownButtonFormField<String>(
+              value: _filter,
+              onChanged: (String? newValue) {
+                if (newValue != null) { // Null check
+                  setState(() {
+                    _filter = newValue;
+                    _performSearch(_searchController.text); // Re-search with new filter
+                  });
+                }
+              },
+              items: <String>['All', 'Fiction', 'Non-Fiction', 'Sci-Fi', 'Romance'] // Example categories
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              decoration: InputDecoration(
+                labelText: 'Filter by Category',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          if (_errorMessage.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                _errorMessage,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _searchResults.isEmpty
+                    ? Center(
+                        child: Text(_errorMessage.isEmpty ? 'No results found.' : _errorMessage),
+                      )
+                    : ListView.builder(
+                        itemCount: _searchResults.length,
+                        itemBuilder: (context, index) {
+                          return BookCard(book: _searchResults[index]);
+                        },
+                      ),
+          ),
+        ],
