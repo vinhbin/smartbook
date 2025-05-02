@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smartbook/services/google_books_service.dart'; 
+import 'package:smartbook/services/google_books_service.dart';
 import 'package:smartbook/models/book.dart';
 import 'package:smartbook/widgets/book_card.dart';
 
@@ -12,36 +12,42 @@ class _CatalogScreenState extends State<CatalogScreen> {
   final _searchController = TextEditingController();
   List<Book> _searchResults = [];
   String _errorMessage = '';
-  bool _isLoading = false; // Added to track loading state
+  bool _isLoading = false;
   String _filter = 'All'; // Added filter state
   int _selectedIndex = 0; // Added for bottom navigation
 
   Future<void> _performSearch(String query) async {
     setState(() {
       _errorMessage = '';
-      _isLoading = true; // Set loading to true before starting the search
-      _searchResults = []; //Clear previous results
+      _isLoading = true;
+      _searchResults = [];
     });
     try {
-      final results = await GoogleBooksService.searchBooks(query); // Corrected class name
+      final results = await GoogleBooksService.searchBooks(query);
+      // Apply filter
+      List<Book> filteredResults = results;
+      if (_filter != 'All') {
+        filteredResults = results.where((book) => book.category == _filter).toList();
+      }
       setState(() {
-        _searchResults = results;
+        _searchResults = filteredResults;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load books. Please try again. Error: $e'; // Improved error message
+        _errorMessage = 'Failed to load books. Please try again. Error: $e';
       });
     } finally {
       setState(() {
-        _isLoading = false; // Set loading to false after search is complete
+        _isLoading = false;
       });
     }
   }
+
   @override
-    void initState() {
-      super.initState();
-      _performSearch("Flutter"); //initial search
-    }
+  void initState() {
+    super.initState();
+    _performSearch("Flutter"); // Initial search
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +137,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       ),
           ),
         ],
-        bottomNavigationBar: BottomNavigationBar(
+      ),
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
@@ -146,7 +153,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ),
           BottomNavigationBarItem(
             label: 'Book Info',
-            icon: Icon(Icons.textfields),
+            icon: Icon(Icons.text_fields),
           ),
           BottomNavigationBarItem(
             label: 'Reading List',
@@ -156,7 +163,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
             label: 'Rate & Review',
             icon: Icon(Icons.star),
           ),
-	  BottomNavigationBarItem(
+	        BottomNavigationBarItem(
             label: 'Forum',
             icon: Icon(Icons.forum),
           ),
@@ -164,3 +171,40 @@ class _CatalogScreenState extends State<CatalogScreen> {
       ),
     );
   }
+
+  void _navigateToPage(int index) {
+     switch (index) {
+      case 0:
+        // Navigate to Home Screen
+        Navigator.pushNamed(context, '/home'); // Example: Using named routes
+        break;
+      case 1:
+        // Navigate to Catalog Screen -  We are already here
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/book_info');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/reading_list');
+        break;
+      case 4:
+        Navigator.pushNamed(context, '/rate_and_review');
+        break;
+      case 5:
+        // Navigate to Profile Screen
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
+
+  void _navigateToHome() {
+      Navigator.pushNamed(context, '/home');
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+}
+
