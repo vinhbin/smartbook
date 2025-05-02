@@ -13,6 +13,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   List<Book> _searchResults = [];
   String _errorMessage = '';
   bool _isLoading = false; // Added to track loading state
+  int _selectedIndex = 0; // Added for bottom navigation
 
   Future<void> _performSearch(String query) async {
     setState(() {
@@ -40,3 +41,43 @@ class _CatalogScreenState extends State<CatalogScreen> {
       super.initState();
       _performSearch("Flutter"); //initial search
     }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Book Catalog'),
+        leading: IconButton( // Added Home button in AppBar
+          icon: const Icon(Icons.home),
+          onPressed: () {
+            setState(() {
+              _selectedIndex = 0;
+              _navigateToHome(); // Call navigation function
+            });
+          },
+        ),
+        actions: [ // Added to move title to the center and keep home icon on the left.
+          Container(),
+        ],
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search for books',
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () {
+                    _performSearch(_searchController.text);
+                  },
+                ),
+              ),
+              onSubmitted: (value) {
+                _performSearch(value);
+              },
+            ),
+          ),
