@@ -65,3 +65,42 @@ class BookInfoScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildBookCover(String? thumbnail) {
+    return Center(
+      child: SizedBox(
+        height: 200,
+        width: 150,
+        child: thumbnail != null && thumbnail.isNotEmpty
+            ? Image.network(
+                thumbnail,
+                fit: BoxFit.cover,
+                errorBuilder: (context, object, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child:
+                        const Center(child: Icon(Icons.image_not_supported)),
+                  );
+                },
+                loadingBuilder: (BuildContext context, Widget child,
+                    ImageChunkEvent? loadingProgress) {
+                  if (loadingProgress == null) {
+                    return child;
+                  }
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
+              )
+            : Container(
+                color: Colors.grey[300],
+                child: const Center(child: Icon(Icons.book)),
+              ),
+      ),
+    );
+  }
