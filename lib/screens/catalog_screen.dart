@@ -35,3 +35,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
       });
     }
   }
+  @override
+    void initState() {
+      super.initState();
+      _performSearch("Flutter"); //initial search
+    }
