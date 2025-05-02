@@ -13,6 +13,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   List<Book> _searchResults = [];
   String _errorMessage = '';
   bool _isLoading = false; // Added to track loading state
+  String _filter = 'All'; // Added filter state
   int _selectedIndex = 0; // Added for bottom navigation
 
   Future<void> _performSearch(String query) async {
@@ -130,3 +131,36 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       ),
           ),
         ],
+        bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+            _navigateToPage(index);
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            label: 'Catalog',
+            icon: Icon(Icons.search),
+          ),
+          BottomNavigationBarItem(
+            label: 'Book Info',
+            icon: Icon(Icons.textfields),
+          ),
+          BottomNavigationBarItem(
+            label: 'Reading List',
+            icon: Icon(Icons.bookmark),
+          ),
+          BottomNavigationBarItem(
+            label: 'Rate & Review',
+            icon: Icon(Icons.star),
+          ),
+	  BottomNavigationBarItem(
+            label: 'Forum',
+            icon: Icon(Icons.forum),
+          ),
+        ],
+      ),
+    );
+  }
