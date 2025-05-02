@@ -7,10 +7,13 @@ import '../services/google_books_service.dart';
 /// Centralised state for the home screen: handles recommendation queries,
 /// paging, simple user preferences, and the "recently rated" similarity hint.
 class BookProvider extends ChangeNotifier {
+<<<<<<< HEAD
   // ────────────────────── public read‑only getters ──────────────────────
   List<Book> get books   => List.unmodifiable(_books);
   bool       get loading => _loading;
   bool       get hasMore => _hasMore;
+=======
+>>>>>>> 44be2f0b483c95d5a122e1f50c93ab55977777d7
 
   // ─────────────────────────── private state ────────────────────────────
   final _api   = GoogleBooksService();
@@ -71,6 +74,7 @@ class BookProvider extends ChangeNotifier {
       if (_recent.isNotEmpty) 'similar to:${_recent.last}',
     ].join(' ');
 
+<<<<<<< HEAD
     try {
       final page = await _api.search(
         query,
@@ -86,6 +90,9 @@ class BookProvider extends ChangeNotifier {
       debugPrint('[BookProvider] fetch error: $e');
       _hasMore = false;
     }
+=======
+    final newPage = await GoogleBooksService.search(q, startIndex: _start, pageSize: _page);
+>>>>>>> 44be2f0b483c95d5a122e1f50c93ab55977777d7
 
     _loading = false;
     notifyListeners();
