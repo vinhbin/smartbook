@@ -35,3 +35,33 @@ class BookInfoScreen extends StatelessWidget {
           _buildActionButtons(context, book),
         ],
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 1, // Set the current index for Book Detail
+        onTap: (index) {
+          _navigateToPage(context, index, book);
+        },
+        items: const [
+          BottomNavigationBarItem(
+            label: 'Catalog',
+            icon: Icon(Icons.search),
+          ),
+          BottomNavigationBarItem(
+            label: 'Book Info',
+            icon: Icon(Icons.text_fields),
+          ),
+          BottomNavigationBarItem(
+            label: 'Reading List',
+            icon: Icon(Icons.bookmark),
+          ),
+          BottomNavigationBarItem(
+            label: 'Rate & Review',
+            icon: Icon(Icons.star),
+          ),
+          BottomNavigationBarItem(
+            label: 'Forum',
+            icon: Icon(Icons.forum),
+          ),
+        ],
+      ),
+    );
+  }
