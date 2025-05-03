@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/providers/auth_provider.dart';
+import '/services/firestore_service.dart';
 import 'stats_screen.dart';
 import 'reviews_screen.dart';
 import 'history_screen.dart';

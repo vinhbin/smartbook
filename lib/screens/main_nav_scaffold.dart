@@ -4,7 +4,7 @@ import 'package:smartbook/screens/reviews_screen.dart';
 import '/screens/home_screen.dart';               // dashboard (default)
 import '/screens/catalog_screen.dart';            // 🔍
 import '/screens/reading_list_screen.dart';       // 📚
-// ⭐ history (simple list wrapper for now)
+import '/screens/rate_and_review_screen.dart';    // ⭐ history (simple list wrapper for now)
 import '/screens/forum_screen.dart';              // 💬
 import '/screens/profile_screen.dart';            // 👤
  
