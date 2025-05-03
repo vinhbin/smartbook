@@ -2,11 +2,17 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 
-import '/models/book.dart';
+import '../models/book.dart';
 
- 
-/// GoogleBooksService
-
+/// ---------------------------------------------------------------------
+/// GoogleBooksService – real API for mobile/desktop, proxy for web.
+/// ---------------------------------------------------------------------
+/// • Mobile / desktop → direct HTTPS call to Google Books.
+/// • Flutter Web      → request goes through `https://corsproxy.io/?` to
+///   inject permissive CORS headers.
+/// • Always times out after 8 s and returns **[]** on any non‑200 so the UI
+///   can decide what to show.
+/// • Gracefully handles missing JSON fields (title, authors, etc.).
 class GoogleBooksService {
   static const _base      = 'https://www.googleapis.com/books/v1/volumes';
   static const _proxyPre  = 'https://corsproxy.io/?'; // only used on web
@@ -15,10 +21,10 @@ class GoogleBooksService {
   ///
   /// Returns **empty list** on HTTP or parsing failure; throws only on
   /// network‑layer errors like time‑out or no connection.
-  Future<List<Book>> search(
+ static Future<List<Book>> search(
     String query, {
     int startIndex = 0,
-    int pageSize   = 10,
+    int pageSize = 10,
   }) async {
     final encodedQ = Uri.encodeQueryComponent(query.trim());
     final uri = Uri.parse(
@@ -39,12 +45,12 @@ class GoogleBooksService {
     }
 
     try {
-      final data  = jsonDecode(res.body) as Map<String, dynamic>;
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
       final items = (data['items'] as List?) ?? [];
       return items
-    .cast<Map<String, dynamic>>()       // <‑‑ this makes the types line up
-    .map<Book>(_fromGoogle)
-    .toList();
+          .cast<Map<String, dynamic>>() // <‐‐ this makes the types line up
+          .map<Book>((item) => _fromGoogle(item)) // Use the instance method
+          .toList();
     } catch (e) {
       debugPrint('[GoogleBooks] parse error → $e');
       return [];
@@ -52,17 +58,21 @@ class GoogleBooksService {
   }
 
   // Convert Google Books JSON → our Book object with safe fallbacks.
-  Book _fromGoogle(Map<String, dynamic> item) {
+  static Book _fromGoogle( // Make this static
+    Map<String, dynamic> item,
+  ) {
     final v = item['volumeInfo'] ?? <String, dynamic>{};
     return Book(
-      id:          item['id'] ?? 'missing_id',
-      title:       v['title'] ?? 'Unknown',
-      authors:     (v['authors'] ?? ['Unknown']).join(', '),
-      thumbnail:   (v['imageLinks']?['thumbnail']) ??
-                   'https://via.placeholder.com/128x198.png?text=No+Cover',
-      rating:      (v['averageRating'] ?? 0).toDouble(),
+      id: item['id'] ?? 'missing_id',
+      title: v['title'] ?? 'Unknown',
+      authors: (v['authors'] ?? ['Unknown']).join(', '),
+      thumbnail: (v['imageLinks']?['thumbnail']) ??
+          'https://via.placeholder.com/128x198.png?text=No+Cover',
+      rating: (v['averageRating'] ?? 0).toDouble(),
       description: v['description'] ?? '',
+      category: v["categories"] != null && (v["categories"] is List)
+          ? (v["categories"] as List).cast<String>().first
+          : null,
     );
   }
 }
-

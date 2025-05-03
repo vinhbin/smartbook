@@ -1,19 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '/models/book.dart';
-import '/services/google_books_service.dart';
+import '../models/book.dart';
+import '../services/google_books_service.dart';
 
 /// Centralised state for the home screen: handles recommendation queries,
 /// paging, simple user preferences, and the "recently rated" similarity hint.
 class BookProvider extends ChangeNotifier {
-  //  public read‑only getters 
+  // ────────────────────── public read‑only getters ──────────────────────
   List<Book> get books   => List.unmodifiable(_books);
   bool       get loading => _loading;
   bool       get hasMore => _hasMore;
 
-  //  private state 
-  final _api   = GoogleBooksService();
+  // ─────────────────────────── private state ────────────────────────────
   final _books = <Book>[];
 
   bool _loading = false; // ← MUST start false so first fetch can run
@@ -25,7 +24,7 @@ class BookProvider extends ChangeNotifier {
   List<String> _genres = ['fiction']; // simple user preference
   final _recent = <String>[];         // last five rated IDs
 
-  //  lifecycle 
+  // ───────────────────────────── lifecycle ──────────────────────────────
   BookProvider() {
     _bootstrap();
   }
@@ -40,7 +39,7 @@ class BookProvider extends ChangeNotifier {
     await refresh();
   }
 
-  //  public API 
+  // ─────────────────────────── public API ───────────────────────────────
   Future<void> refresh() async {
     _start   = 0;
     _books.clear();
@@ -52,12 +51,12 @@ class BookProvider extends ChangeNotifier {
   Future<void> loadMore() => _load();
 
   void addRating(String id) {
-    _recent..add(id);
+    _recent.add(id);
     if (_recent.length > 5) _recent.removeAt(0);
     refresh();
   }
 
-  //  internals 
+  // ──────────────────────────── internals ───────────────────────────────
   Future<void> _load() async {
     if (_loading || !_hasMore) return;
 
@@ -68,11 +67,10 @@ class BookProvider extends ChangeNotifier {
     // out the logic below and just send an empty string.
     final query = [
       ..._genres,
-      if (_recent.isNotEmpty) 'similar to:${_recent.last}',
     ].join(' ');
 
     try {
-      final page = await _api.search(
+      final page = await GoogleBooksService.search(
         query,
         startIndex: _start,
         pageSize: _page,
@@ -83,11 +81,9 @@ class BookProvider extends ChangeNotifier {
       _start   += _page;
     } catch (e) {
       // network or parsing error – stop paging and surface nothing more.
-      debugPrint('[BookProvider] fetch error: $e');
-      _hasMore = false;
-    }
 
     _loading = false;
     notifyListeners();
   }
+}
 }

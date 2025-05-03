@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '/models/book.dart';
 import '/services/google_books_service.dart';
@@ -18,7 +17,6 @@ class CatalogScreen extends StatefulWidget {
 
 class _CatalogScreenState extends State<CatalogScreen> {
   final _ctrl = TextEditingController();
-  final _api  = GoogleBooksService();
 
   List<Book> _results = [];
   bool _loading = false;
@@ -26,7 +24,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   Future<void> _search(String q) async {
     if (q.trim().isEmpty) return;
     setState(() => _loading = true);
-    _results = await _api.search(q.trim());
+    _results = await GoogleBooksService.search(q.trim());
     setState(() => _loading = false);
   }
 
