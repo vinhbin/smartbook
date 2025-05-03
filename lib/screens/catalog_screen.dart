@@ -1,210 +1,136 @@
 import 'package:flutter/material.dart';
-import 'package:smartbook/services/google_books_service.dart'; // Corrected import path
-import 'package:smartbook/models/book.dart';
-import 'package:smartbook/widgets/book_card.dart';
+import 'package:provider/provider.dart';
 
+import '/models/book.dart';
+import '/services/google_books_service.dart';
+
+
+/// CatalogScreen – search & grid view
+/// • Header: home icon (returns to dashboard), SmartBook title, settings gear
+/// • Rounded search field with hamburger prefix + search icon suffix
+/// • 2‑column grid of book covers
 class CatalogScreen extends StatefulWidget {
+  const CatalogScreen({super.key});
+
   @override
-  _CatalogScreenState createState() => _CatalogScreenState();
+  State<CatalogScreen> createState() => _CatalogScreenState();
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
-  final _searchController = TextEditingController();
-  List<Book> _searchResults = [];
-  String _errorMessage = '';
-  bool _isLoading = false;
-  String _filter = 'All'; // Added filter state
-  int _selectedIndex = 0; // Added for bottom navigation
+  final _ctrl = TextEditingController();
+  final _api  = GoogleBooksService();
 
-  Future<void> _performSearch(String query) async {
-    setState(() {
-      _errorMessage = '';
-      _isLoading = true;
-      _searchResults = [];
-    });
-    try {
-      final results = await GoogleBooksService.search(query);
-      // Apply filter
-      List<Book> filteredResults = results;
-      if (_filter != 'All') {
-        filteredResults = results.where((book) => book.category == _filter).toList();
-      }
-      setState(() {
-        _searchResults = filteredResults;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to load books. Please try again. Error: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+  List<Book> _results = [];
+  bool _loading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _performSearch("Flutter"); // Initial search
+  Future<void> _search(String q) async {
+    if (q.trim().isEmpty) return;
+    setState(() => _loading = true);
+    _results = await _api.search(q.trim());
+    setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Book Catalog'),
-        leading: IconButton( // Added Home button in AppBar
-          icon: const Icon(Icons.home),
-          onPressed: () {
-            setState(() {
-              _selectedIndex = 0;
-              _navigateToHome(); // Call navigation function
-            });
-          },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFECFDFC), Color(0xFFC5F2D6)],
+          ),
         ),
-        actions: [ // Added to move title to the center and keep home icon on the left.
-          Container(),
-        ],
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search for books',
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () {
-                    _performSearch(_searchController.text);
-                  },
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header 
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.home),
+                      onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                    ),
+                    const Spacer(),
+                    const Text('SmartBook',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00A480),
+                        )),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () => Navigator.pushNamed(context, '/profile'),
+                    ),
+                  ],
                 ),
               ),
-              onSubmitted: (value) {
-                _performSearch(value);
-              },
-            ),
-          ),
-          // Filter Dropdown
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: DropdownButtonFormField<String>(
-              value: _filter,
-              onChanged: (String? newValue) {
-                if (newValue != null) { // Null check
-                  setState(() {
-                    _filter = newValue;
-                    _performSearch(_searchController.text); // Re-search with new filter
-                  });
-                }
-              },
-              items: <String>['All', 'Fiction', 'Non-Fiction', 'Sci-Fi', 'Romance'] // Example categories
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: InputDecoration(
-                labelText: 'Filter by Category',
-                border: OutlineInputBorder(),
+
+              // Search Field
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: SizedBox(
+                  height: 46,
+                  child: TextField(
+                    controller: _ctrl,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: _search,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(.7),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      prefixIcon: const Icon(Icons.menu),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () => _search(_ctrl.text),
+                      ),
+                      hintText: 'Dog',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-          if (_errorMessage.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                _errorMessage,
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _searchResults.isEmpty
-                    ? Center(
-                        child: Text(_errorMessage.isEmpty ? 'No results found.' : _errorMessage),
-                      )
-                    : ListView.builder(
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          return BookCard(book: _searchResults[index]);
+
+              if (_loading) const LinearProgressIndicator(),
+
+              // Grid of covers
+              Expanded(
+                child: _results.isEmpty && !_loading
+                    ? const Center(child: Text('Search something…'))
+                    : GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: .68,
+                        ),
+                        itemCount: _results.length,
+                        itemBuilder: (_, i) {
+                          final b = _results[i];
+                          return GestureDetector(
+                            onTap: () => Navigator.pushNamed(context, '/book_info', arguments: b),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.network(
+                                b.thumbnail,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
                         },
                       ),
+              ),
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-            _navigateToPage(index);
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            label: 'Catalog',
-            icon: Icon(Icons.search),
-          ),
-          BottomNavigationBarItem(
-            label: 'Book Info',
-            icon: Icon(Icons.text_fields),
-          ),
-          BottomNavigationBarItem(
-            label: 'Reading List',
-            icon: Icon(Icons.bookmark),
-          ),
-          BottomNavigationBarItem(
-            label: 'Rate & Review',
-            icon: Icon(Icons.star),
-          ),
-	        BottomNavigationBarItem(
-            label: 'Forum',
-            icon: Icon(Icons.forum),
-          ),
-        ],
+        ),
       ),
     );
   }
-
-  void _navigateToPage(int index) {
-     switch (index) {
-      case 0:
-        // Navigate to Home Screen
-        Navigator.pushNamed(context, '/home'); // Example: Using named routes
-        break;
-      case 1:
-        // Navigate to Catalog Screen -  We are already here
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/book_info');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/reading_list');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/rate_and_review');
-        break;
-      case 5:
-        // Navigate to Profile Screen
-        Navigator.pushNamed(context, '/profile');
-        break;
-    }
-  }
-
-  void _navigateToHome() {
-      Navigator.pushNamed(context, '/home');
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 }
-

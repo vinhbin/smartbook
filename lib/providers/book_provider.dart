@@ -1,21 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/book.dart';
-import '../services/google_books_service.dart';
+import '/models/book.dart';
+import '/services/google_books_service.dart';
 
 /// Centralised state for the home screen: handles recommendation queries,
 /// paging, simple user preferences, and the "recently rated" similarity hint.
 class BookProvider extends ChangeNotifier {
-<<<<<<< HEAD
-  // ────────────────────── public read‑only getters ──────────────────────
+  //  public read‑only getters 
   List<Book> get books   => List.unmodifiable(_books);
   bool       get loading => _loading;
   bool       get hasMore => _hasMore;
-=======
->>>>>>> 44be2f0b483c95d5a122e1f50c93ab55977777d7
 
-  // ─────────────────────────── private state ────────────────────────────
+  //  private state 
   final _api   = GoogleBooksService();
   final _books = <Book>[];
 
@@ -28,7 +25,7 @@ class BookProvider extends ChangeNotifier {
   List<String> _genres = ['fiction']; // simple user preference
   final _recent = <String>[];         // last five rated IDs
 
-  // ───────────────────────────── lifecycle ──────────────────────────────
+  //  lifecycle 
   BookProvider() {
     _bootstrap();
   }
@@ -43,7 +40,7 @@ class BookProvider extends ChangeNotifier {
     await refresh();
   }
 
-  // ─────────────────────────── public API ───────────────────────────────
+  //  public API 
   Future<void> refresh() async {
     _start   = 0;
     _books.clear();
@@ -60,7 +57,7 @@ class BookProvider extends ChangeNotifier {
     refresh();
   }
 
-  // ──────────────────────────── internals ───────────────────────────────
+  //  internals 
   Future<void> _load() async {
     if (_loading || !_hasMore) return;
 
@@ -74,7 +71,6 @@ class BookProvider extends ChangeNotifier {
       if (_recent.isNotEmpty) 'similar to:${_recent.last}',
     ].join(' ');
 
-<<<<<<< HEAD
     try {
       final page = await _api.search(
         query,
@@ -90,9 +86,6 @@ class BookProvider extends ChangeNotifier {
       debugPrint('[BookProvider] fetch error: $e');
       _hasMore = false;
     }
-=======
-    final newPage = await GoogleBooksService.search(q, startIndex: _start, pageSize: _page);
->>>>>>> 44be2f0b483c95d5a122e1f50c93ab55977777d7
 
     _loading = false;
     notifyListeners();

@@ -2,33 +2,20 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 
-import '../models/book.dart';
+import '/models/book.dart';
 
-/// ---------------------------------------------------------------------
-/// GoogleBooksService – real API for mobile/desktop, proxy for web.
-/// ---------------------------------------------------------------------
-/// • Mobile / desktop → direct HTTPS call to Google Books.
-/// • Flutter Web      → request goes through `https://corsproxy.io/?` to
-///   inject permissive CORS headers.
-/// • Always times out after 8 s and returns **[]** on any non‑200 so the UI
-///   can decide what to show.
-/// • Gracefully handles missing JSON fields (title, authors, etc.).
+ 
+/// GoogleBooksService
+
 class GoogleBooksService {
   static const _base      = 'https://www.googleapis.com/books/v1/volumes';
   static const _proxyPre  = 'https://corsproxy.io/?'; // only used on web
 
-<<<<<<< HEAD
   /// Fetches a page of books that match [query].
   ///
   /// Returns **empty list** on HTTP or parsing failure; throws only on
   /// network‑layer errors like time‑out or no connection.
   Future<List<Book>> search(
-=======
-  /// Fetches [pageSize] books that match [query], starting at [startIndex].
-  /// Returns an empty list on any non-200 status so the caller can
-  /// decide what to show (spinner, snackbar, etc.).
-  static Future<List<Book>> search(
->>>>>>> 44be2f0b483c95d5a122e1f50c93ab55977777d7
     String query, {
     int startIndex = 0,
     int pageSize   = 10,
@@ -38,18 +25,12 @@ class GoogleBooksService {
       '${kIsWeb ? _proxyPre : ''}$_base?q=$encodedQ&startIndex=$startIndex&maxResults=$pageSize',
     );
 
-<<<<<<< HEAD
     http.Response res;
     try {
       res = await http.get(uri).timeout(const Duration(seconds: 8));
     } catch (e) {
       debugPrint('[GoogleBooks] network error → $e');
       rethrow; // let caller decide (usually BookProvider)
-=======
-    final res = await http.get(uri);
-    if (res.statusCode != 200) {
-      throw Exception('Failed to load books: ${res.statusCode}');
->>>>>>> 44be2f0b483c95d5a122e1f50c93ab55977777d7
     }
 
     if (res.statusCode != 200) {

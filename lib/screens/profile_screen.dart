@@ -1,101 +1,116 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../providers/auth_provider.dart';
-import '../services/firestore_service.dart';
+import '/providers/auth_provider.dart';
+import '/services/firestore_service.dart';
+import 'stats_screen.dart';
+import 'reviews_screen.dart';
+import 'history_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  List<String> _genres = [];
-  final _all = ['fiction', 'fantasy', 'mystery', 'history', 'romance', 'science'];
-
-  @override
-  void initState() {
-    super.initState();
-    SharedPreferences.getInstance().then((p) {
-      setState(() => _genres = p.getStringList('userGenres') ?? ['fiction']);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final user = context.read<AuthProvider>().user!;
+    final t    = Theme.of(context);
+
+    Widget tile(String label, IconData icon, VoidCallback onTap) =>
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.4),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: ListTile(
+            leading: Icon(icon, color: Colors.black87),
+            title: Text(label),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: onTap,
+          ),
+        );
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.email),
-              title: Text(user.email ?? ''),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                const Text('Favourite genres:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 8),
-                Wrap(
-                  spacing: 6,
-                  children: _genres.map((g) => Chip(label: Text(g))).toList(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFE8FFF2), Color(0xFFC8EFD9)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              /* header */
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.home),
+                      onPressed: () =>
+                          Navigator.pushReplacementNamed(context, '/home'),
+                    ),
+                    const Spacer(),
+                    Text('SmartBook',
+                        style: t.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF64C7A6))),
+                    const Spacer(),
+                    IconButton(
+                        icon: const Icon(Icons.settings), onPressed: () {}),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: _editGenres,
-                ),
-              ],
-            ),
-          ],
+              ),
+
+              const SizedBox(height: 12),
+
+              /* avatar + email */
+              CircleAvatar(
+                radius: 32,
+                backgroundColor: Colors.grey.shade300,
+                child: const Icon(Icons.person, size: 40),
+              ),
+              const SizedBox(height: 8),
+              Text(user.email ?? 'User',
+                  style: t.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
+              TextButton.icon(
+                onPressed: () => context.read<AuthProvider>().signOut(),
+                icon: const Icon(Icons.logout, size: 16),
+                label: const Text('Log Out'),
+              ),
+              const SizedBox(height: 16),
+
+              /* menu tiles */
+              tile('Statistics', Icons.bar_chart, () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const StatsScreen()));
+              }),
+              tile('List of Reviews', Icons.favorite, () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ReviewsScreen()));
+              }),
+              tile('Reading History', Icons.bookmarks, () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const HistoryScreen()));
+              }),
+
+              // placeholders
+              tile('Notifications', Icons.notifications, () {}),
+              tile('Accessibility', Icons.key, () {}),
+              tile('Help', Icons.help, () {}),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  Future<void> _editGenres() async {
-    final tmp = [..._genres];
-    final res = await showDialog<List<String>>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Pick genres'),
-        content: StatefulBuilder(builder: (_, setSt) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: _all.map((g) {
-              final selected = tmp.contains(g);
-              return CheckboxListTile(
-                title: Text(g),
-                value: selected,
-                onChanged: (v) => setSt(() {
-                  v! ? tmp.add(g) : tmp.remove(g);
-                }),
-              );
-            }).toList(),
-          );
-        }),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, null), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, tmp), child: const Text('Save')),
-        ],
-      ),
-    );
-    if (res != null) {
-      setState(() => _genres = res);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('userGenres', res);
-      // also sync to Firestore profile doc
-      final uid = context.read<AuthProvider>().user!.uid;
-      FirestoreService().db.doc('users/$uid').set(
-  {'favoriteGenres': res},
-  SetOptions(merge: true),
-);
-    }
   }
 }

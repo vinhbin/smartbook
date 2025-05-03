@@ -2,83 +2,210 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '/providers/book_provider.dart';
-import '/widgets/book_card.dart';
+import '/providers/auth_provider.dart';
 import '/models/book.dart';
 
-/// Home screen showing the user a scrollable, paginated list of book
-/// recommendations.  All data and paging state come from [BookProvider].
-class HomeScreen extends StatefulWidget {
+ 
+/// HomeScreen – Main Dashboard
+ 
+/// Displays:
+///   - Welcome message for the user
+///   - Continue Reading section (first current book or fallback)
+///   - Just for You section (first 10 books)
+///   - Trending section (last 10 books)
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    final bookProv = context.watch<BookProvider>();      // Book state provider
+    final user = context.watch<AuthProvider>().user;     // Authenticated user
+    final name = user?.email?.split('@').first ?? 'Reader'; // Extract name from email
+
+    // Fetch books if list is empty and not already loading
+    if (bookProv.books.isEmpty && !bookProv.loading) {
+      context.read<BookProvider>().refresh();
+    }
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFECFDFC), Color(0xFFC5F2D6)],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                // ─── Header Row ───
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('SmartBook',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF00A480),
+                        )),
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () => Navigator.pushNamed(context, '/profile'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // ─── Welcome Text ───
+                Text('Welcome back, $name!',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    )),
+                const SizedBox(height: 24),
+
+                // ─── Continue Reading Section ───
+                const _SectionTitle('Continue Reading'),
+                const SizedBox(height: 8),
+                _ContinueReadingTile(book: bookProv.books.isNotEmpty ? bookProv.books.first : null),
+                const SizedBox(height: 24),
+
+                // ─── Just for You Section ───
+                const _SectionTitle('Just for You'),
+                const SizedBox(height: 8),
+                _HorizontalCovers(books: bookProv.books.take(10).toList()),
+                const SizedBox(height: 24),
+
+                // ─── Trending Section ───
+                const _SectionTitle('Trending'),
+                const SizedBox(height: 8),
+                _HorizontalCovers(books: bookProv.books.reversed.take(10).toList()),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final _scrollCtrl = ScrollController();
+ 
+/// _SectionTitle – Reusable title widget for sections
+class _SectionTitle extends StatelessWidget {
+  final String text;
+  const _SectionTitle(this.text);
 
   @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      );
+}
 
-    // Lazy‑load next page when the user nears the bottom (250 px threshold).
-    _scrollCtrl.addListener(() {
-      if (_scrollCtrl.position.pixels >=
-          _scrollCtrl.position.maxScrollExtent - 250) {
-        context.read<BookProvider>().loadMore();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollCtrl.dispose();
-    super.dispose();
-  }
+ 
+/// ContinueReadingTile – Large visual tile for "Continue Reading"
+ 
+class _ContinueReadingTile extends StatelessWidget {
+  final Book? book;
+  const _ContinueReadingTile({this.book});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<BookProvider>(
-      builder: (_, prov, __) {
-        final books = prov.books;
-        final hasMore = prov.hasMore;
+    if (book == null) {
+      // Show placeholder tile if no book
+      return Container(
+        height: 160,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(8),
+        ),
+      );
+    }
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Recommended Books')),
-          body: RefreshIndicator(
-            onRefresh: prov.refresh,
-            child: ListView.builder(
-              controller: _scrollCtrl,
-              itemCount: books.length + (hasMore ? 1 : 0), // extra slot for spinner
-              itemBuilder: (_, i) {
-                // Real book rows
-                if (i < books.length) {
-                  final Book b = books[i];
-                  return GestureDetector(
-                    onTap: () async {
-                      // Open detail page; when user returns, mark it as "rated" so
-                      // the next recommendation query can include a similarity hint.
-                      await Navigator.pushNamed(
-                        context,
-                        '/book_info',
-                        arguments: b,
-                      );
-                      if (mounted) prov.addRating(b.id);
-                    },
-                    child: BookCard(book: b),
-                  );
-                }
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/book_info', arguments: book),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          children: [
+            // Book cover background
+            Image.network(book!.thumbnail,
+                height: 160, width: double.infinity, fit: BoxFit.cover),
 
-                // Trailing loading indicator while fetching next page
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              },
+            // Book title + author overlay
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                color: Colors.black.withOpacity(.6),
+                child: Text(
+                  'Title: ${book!.title}\nAuthor: ${book!.authors}',
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ),
+
+            // Continue button on bottom-right
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black.withOpacity(.7),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                onPressed: () => Navigator.pushNamed(context, '/book_info', arguments: book),
+                child: const Text('Continue'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+ 
+/// HorizontalCovers – Scrollable horizontal list of book covers
+ 
+class _HorizontalCovers extends StatelessWidget {
+  final List<Book> books;
+  const _HorizontalCovers({required this.books});
+
+  @override
+  Widget build(BuildContext context) {
+    if (books.isEmpty) {
+      return const SizedBox(height: 120, child: Center(child: Text('…loading…')));
+    }
+
+    return SizedBox(
+      height: 120,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: books.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) => GestureDetector(
+          onTap: () => Navigator.pushNamed(context, '/book_info', arguments: books[i]),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: Image.network(
+              books[i].thumbnail,
+              width: 80,
+              height: 120,
+              fit: BoxFit.cover,
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

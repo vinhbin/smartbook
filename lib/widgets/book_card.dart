@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../models/book.dart';
+import '/models/book.dart';
 
 /// Reusable card used by Home, Catalog, and Reading-List screens.
 /// Tapping is handled by the parent (GestureDetector) so the card
